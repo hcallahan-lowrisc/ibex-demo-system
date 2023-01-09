@@ -113,6 +113,7 @@
             screen
             verilator
             riscv-gcc-toolchain-lowrisc
+            gtkwave
           ]);
           shellHook = ''
             # Works on Ubuntu, may not on other distros. FIXME
