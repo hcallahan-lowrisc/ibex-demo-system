@@ -40,7 +40,10 @@
         pythonEnv = pkgs.python3.withPackages(ps: with ps; [ pip fusesoc edalize pyyaml Mako ]);
         # Currently we don't build the riscv-toolchain from src, we use a github release
         # (See ./dependencies/riscv-gcc-toolchain-lowrisc.nix)
-        # riscv-gcc-toolchain-lowrisc-src = pkgs.callPackage ./dependencies/riscv_gcc.nix { riscv-arch = "rv32imc"; };
+        # riscv-gcc-toolchain-lowrisc-src = pkgs.callPackage \
+        #   ./dependencies/riscv_gcc.nix {
+        #     riscv-arch = "rv32imc";
+        #   };
 
         # Using requireFile prevents rehashing each time,
         # This saves much seconds during rebuilds.
@@ -116,7 +119,6 @@
             export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 
             # HACK fixup some paths to use our sandboxed python environment
-
             sed -i -- \
               's|interpreter:.*|interpreter: ${pythonEnv}/bin/python3|g' \
               vendor/lowrisc_ibex/vendor/lowrisc_ip/dv/tools/ralgen/ralgen.core
