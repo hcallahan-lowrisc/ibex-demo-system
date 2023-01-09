@@ -24,10 +24,17 @@
               # Add all the python packages we need that aren't in nixpkgs
               # (See the ./dependencies folder for more info)
               (final: prev: {
-              python3 = prev.python3.override {
-                packageOverrides = deps.overlay_python;
-              };
-            })];
+                python3 = prev.python3.override {
+                  packageOverrides = deps.overlay_python;
+                };
+              })
+              # Add some missing dependencies to the verilator package
+              (final: prev: {
+                verilator = prev.verilator.overrideAttrs ( oldAttrs : {
+                  propagatedBuildInputs = [ final.zlib final.libelf ];
+                });
+              })
+            ];
         };
 
         pythonEnv = pkgs.python3.withPackages(ps: with ps; [ pip fusesoc edalize pyyaml Mako ]);
