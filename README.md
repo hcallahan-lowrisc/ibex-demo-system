@@ -25,12 +25,13 @@ directory of the project. To leave this environment, simply run `exit`.
 ### Installing
 #### Installing Nix
 ```bash
-# Run the reccommended nix multi-user installation
+# Run the recommended nix multi-user installation
 # https://nixos.org/download.html
-# This is interactive, just follow the prompts
+# This is an interactive installer, just follow the prompts...
 sh <(curl -L https://nixos.org/nix/install) --daemon
 
 # Add some global configuration to nix to make use of the flakes and CLI experimental features.
+mkdir -p $HOME/.config/nix
 cat <<EOF > $HOME/.config/nix/nix.conf
 experimental-features = nix-command flakes
 EOF
@@ -48,7 +49,7 @@ nix --version
 # <Xilinx Unified Installer 2022.2: Linux Self Extracting Web Installer (BIN - 271.02 MB)>
 # The download link will be similar to:
 # https://www.xilinx.com/member/forms/download/xef.html?filename=Xilinx_Unified_2022.2_1014_8888_Lin64.bin
-# You will need to register on the website to download this file.
+# - You will need to register on the website to download this file.
 
 # Once the download is complete...
 cd <location/of/downloaded/file>
@@ -56,16 +57,18 @@ cd <location/of/downloaded/file>
 # Extract the installer to a local temporary directory
 local PREFIX=/tmp/xilinx
 local VERSION=2022.2
-local INSTALLER="Xilinx_Unified_${VERSION}_0420_0327_Lin64.bin"  # This should match the download
+local INSTALLER="<downloaded/file>"  # This should match the download
 local INSTALLER_EXTRACTED="${PREFIX}/extracted"
-sudo mkdir $PREFIX
-sudo chown -R $USER:$USER $PREFIX $INSTALLER
-sudo $INSTALLER --keep --noexec --target $PREFIX
+mkdir $PREFIX
+chown -R $USER:$USER $PREFIX $INSTALLER
+chmod +x $INSTALLER
+./$INSTALLER --keep --noexec --target $INSTALLER_EXTRACTED
 
 # Now run the installer to create a bundler installer with the devices we need.
 local INSTALLER_BUNDLED="$PREFIX/bundled"
-pushd PREFIX
+pushd $INSTALLER_EXTRACTED
 ./xsetup
+popd
 ```
 
 - Run the installer graphically
@@ -74,7 +77,7 @@ pushd PREFIX
   2. Page 'Select Install Type'
      1. Enter email/password for 'User Authentication' (register on Xilinx.com)
      2. Select the radio-box 'Download Image (Install Seperately)'
-     3. Select the download directory as '$INSTALLER_BUNDLED' (See above)
+     3. Select the download directory as '/tmp/xilinx/bundled' (the value from $INSTALLER_BUNDLED, See above)
      4. Under 'Download fields to create full image for selected platform(s)', select 'Linux' only.
      5. Under 'Image Contents', select 'Selected Product Only'
      6. Select 'Next >'
@@ -91,24 +94,28 @@ pushd PREFIX
         3. Installation Options
      2. Select 'Next >'
   6. Page 'Download Summary'
+     1. Check the download is approx 13GB.
      1. Select 'Download'
-
-- Now wait for the download to complete (approx 13GB)
 
 ```bash
 # Now we have created a bundled installer for Vivado, we need to add this to the nix store
 
 # The easiest way to get the data into the nix store is by creating an archive...
 # (You may need to install 'pigz' for this step, e.g. 'sudo apt install pigz')
+pushd $PREFIX
 local BUNDLED_ARCHIVE="$PREFIX/vivado_bundled.tar.gz"
 tar cf $BUNDLED_ARCHIVE -I pigz --directory=$(dirname $INSTALLER_BUNDLED) ./$(basename $INSTALLER_BUNDLED)
 
 # Now add using 'nix-prefetch-url'
 VIVADO_BUNDLED_HASH=$(nix-prefetch-url --type sha256 file:$BUNDLED_ARCHIVE)
-  > path is /nix/store/pfw6kxlmd4bsj9ml7j4i1a6dbi3dhff8-vivado_bundled.tar.gz
+# > path is /nix/store/pfw6kxlmd4bsj9ml7j4i1a6dbi3dhff8-vivado_bundled.tar.gz
 
 # The value of this has will be needed for the next step.
-echo $VIVADO_BUNDLED_HAS
+echo $VIVADO_BUNDLED_HASH
+popd
+
+# Copy this hash into the file flake.nix in the root of the repository
+# We need to update the sha256 hash line (L42)?
 ```
 
 #### Add udev rules for our device
@@ -138,6 +145,7 @@ our sandboxed environment, and then add it's PATH to our own once installed.
 git clone git@github.com:lowRISC/ibex-demo-system.git
 cd ibex-demo-system
 
+nix flake update
 nix develop .#labenv
 # This will take a while, maybe 10 mins...
 
@@ -219,7 +227,6 @@ ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idPro
 ```
 
 Run the following to reload the rules...
-
 ```bash
 sudo udevadm control --reload-rules
 sudo udevadm trigger
