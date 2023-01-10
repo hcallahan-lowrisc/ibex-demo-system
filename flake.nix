@@ -102,6 +102,7 @@
           verilator
           riscv-gcc-toolchain-lowrisc
           gtkwave
+          srecord
         ]);
 
       in {
