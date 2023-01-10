@@ -55,6 +55,26 @@ EOF
 nix --version
 > nix (Nix) 2.12.0
 ```
+
+#### Add udev rules for our device
+These are needed for the programmer to access the development board.
+```bash
+sudo tee <<EOF > /etc/udev/rules.d/90-arty-a7.rules
+# Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
+# used on Digilent boards
+ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", ATTRS{manufacturer}=="Digilent", MODE="0666"
+
+# Future Technology Devices International, Ltd FT232 Serial (UART) IC
+ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
+EOF
+```
+Run the following to reload the rules...
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
 #### Installing Vivado using Nix
 ```bash
 # Go to the Xilinx.com website
@@ -123,30 +143,10 @@ tar cf $BUNDLED_ARCHIVE -I pigz --directory=$(dirname $INSTALLER_BUNDLED) ./$(ba
 
 # Now add using 'nix-prefetch-url'
 VIVADO_BUNDLED_HASH=$(nix-prefetch-url --type sha256 file:$BUNDLED_ARCHIVE)
-# > path is /nix/store/pfw6kxlmd4bsj9ml7j4i1a6dbi3dhff8-vivado_bundled.tar.gz
 
-# The value of this has will be needed for the next step.
+# The value of this hash will be needed for the next step.
 echo $VIVADO_BUNDLED_HASH
 popd
-```
-
-#### Add udev rules for our device
-These are needed for the programmer to access the development board.
-```bash
-sudo cat <<EOF > /etc/udev/rules.d/90-arty-a7.rules
-# Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
-# used on Digilent boards
-ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", ATTRS{manufacturer}=="Digilent", MODE="0666"
-
-# Future Technology Devices International, Ltd FT232 Serial (UART) IC
-ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
-EOF
-```
-Run the following to reload the rules...
-
-```bash
-sudo udevadm control --reload-rules
-sudo udevadm trigger
 ```
 
 #### Install and activate our environment
@@ -162,10 +162,13 @@ cd ibex-demo-system
 sed -i -- "s|sha256\s=\s\".*\";|sha256 = \"$VIVADO_BUNDLED_HASH\";|g" flake.nix
 
 nix flake update
-nix develop .#labenv
-# This will take a while, maybe 10 mins...
+nix develop .#labenv # This will take a while, maybe 10 mins...
 
-# Once it completes, you will be in a shell with all the tools required to do the lab.
+# Once it completes,you should see the message...
+# >> Welcome the the ibex-demo-system nix environment! <<
+# >> ------------------------------------------------- <<
+
+# You are now in a shell with all the tools required to do the lab.
 
 # To exit this shell environment when you are done, simply run
 exit
@@ -173,8 +176,9 @@ exit
 
 ## Building Software
 
-First the software must be built. This is provide an initial binary for the FPGA
-build.
+First the software must be built.
+This can be loaded into an FPGA to run on a synthesized Ibex processor, or passed
+to a verilator simulation model to be simulated on a PC.
 
 ```
 mkdir sw/build

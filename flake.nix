@@ -138,6 +138,25 @@
               vendor/lowrisc_ibex/vendor/lowrisc_ip/ip/prim/primgen.core
 
             echo "Welcome the the ibex-demo-system nix environment!"
+            echo "-------------------------------------------------"
+
+            cat << EOF
+            Build ibex software :
+                mkdir sw/build && pushd sw/build && cmake ../ && make && popd
+            Build ibex simulation verilator model :
+                fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:ibex:demo_system
+            Run ibex simulator verilator model :
+                ./build/lowrisc_ibex_demo_system_0/sim-verilator/Vibex_demo_system [-t] \\
+                  --meminit=ram,sw/build/demo/hello_world/demo
+            Build ibex-demo-system FPGA bitstream for Arty-A7 :
+                fusesoc --cores-root=. run --target=synth --setup --build lowrisc:ibex:demo_system
+            Program Arty-A7 FPGA with bitstream :
+                fusesoc --cores-root=. run --target=synth --run lowrisc:ibex:demo_system
+              OR
+                make -C ./build/lowrisc_ibex_demo_system_0/synth-vivado/ pgm
+            Load ibex software to the programmed FPGA :
+                ./util/load_demo_system.sh run ./sw/build/demo/lcd_st7735/lcd_st7735
+            EOF
           '';
         };
       })
