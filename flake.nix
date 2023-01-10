@@ -1,5 +1,5 @@
 {
-  description = "A template that shows all standard flake outputs";
+  description = "Environment for synthesizing and simulating the ibex-demo-system.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -18,7 +18,7 @@
           inherit system;
           config = { allowUnfree = true; };
           overlays =
-            [ # Add the extra packages we might need
+            [ # Add extra packages we might need
               # Currently this contains the lowrisc riscv-toolchain, and spike
               deps.overlay_pkgs
               # Add all the python packages we need that aren't in nixpkgs
@@ -28,7 +28,7 @@
                   packageOverrides = deps.overlay_python;
                 };
               })
-              # Add some missing dependencies to the verilator package
+              # Add some missing dependencies to nixpkgs#verilator
               (final: prev: {
                 verilator = prev.verilator.overrideAttrs ( oldAttrs : {
                   propagatedBuildInputs = [ final.zlib final.libelf ];
@@ -45,7 +45,7 @@
         #     riscv-arch = "rv32imc";
         #   };
 
-        # Using requireFile prevents rehashing each time,
+        # Using requireFile prevents rehashing each time.
         # This saves much seconds during rebuilds.
         src = pkgs.requireFile rec {
           name = "vivado_bundled.tar.gz";
@@ -60,10 +60,12 @@
 
             This nix expression requires that ${name} is already part of the store.
             - Login to xilinx.com
-            - Download from https://www.xilinx.com/support/download.html,
+            - Download Unified Installer from https://www.xilinx.com/support/download.html,
+            - Run installer, specify a 'Download Image (Install Seperately)'
+            - Gzip the bundled installed image directory
             - Rename the file to ${name}
             - Add it to the nix store with
-              $ nix-prefetch-url --type sha256 --print-path file:</path/to/${name}>
+              $ nix-prefetch-url --type sha256 file:</path/to/${name}>
           '';
         };
 
@@ -89,6 +91,19 @@
           };
         };
 
+        # This is the final list of dependencies we need to build the project.
+        project_deps = [
+          vivado
+          pythonEnv
+        ] ++ (with pkgs; [
+          cmake
+          openocd
+          screen
+          verilator
+          riscv-gcc-toolchain-lowrisc
+          gtkwave
+        ]);
+
       in {
         packages.dockertest = pkgs.dockerTools.buildImage {
           name = "hello-docker";
@@ -101,25 +116,19 @@
             Cmd = [ "${pkgs.sl}/bin/sl" ];
           };
         };
-        packages.src1 = vivado;
         devShells.labenv = pkgs.mkShell {
           name = "labenv";
-          buildInputs = [
-            vivado
-            pythonEnv
-          ] ++ (with pkgs; [
-            cmake
-            openocd
-            screen
-            verilator
-            riscv-gcc-toolchain-lowrisc
-            gtkwave
-          ]);
+          buildInputs = project_deps;
           shellHook = ''
-            # Works on Ubuntu, may not on other distros. FIXME
+            # FIXME This works on Ubuntu, may not on other distros. FIXME
             export LOCALE_ARCHIVE=/usr/lib/locale/locale-archive
 
             # HACK fixup some paths to use our sandboxed python environment
+            # Currently, fusesoc tries to invoke the program 'python3' from the
+            # PATH, which when running under a nix python environment, resolves
+            # to the raw python binary, not wrapped and not including the
+            # environment's packages. Hence, the first time an import is evaluated
+            # we will error out.
             sed -i -- \
               's|interpreter:.*|interpreter: ${pythonEnv}/bin/python3|g' \
               vendor/lowrisc_ibex/vendor/lowrisc_ip/dv/tools/ralgen/ralgen.core
@@ -144,15 +153,5 @@
 
     # Utilized by `nix run . -- <args?>`
     # defaultApp.x86_64-linux = self.apps.x86_64-linux.hello;
-
-    # Default overlay, for use in dependent flakes
-    # Same idea as overlay but a list or attrset of them.
-    # overlay = final: prev: { };
-    # overlays = { exampleOverlay = self.overlay; };
-
-    # Utilized by `nix develop`
-    # Utilized by `nix develop .#<name>`
-    # devShell.x86_64-linux = rust-web-server.devShell.x86_64-linux;
-    # devShells.x86_64-linux.example = self.devShell.x86_64-linux;
   };
 }
