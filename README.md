@@ -90,17 +90,17 @@ sudo udevadm trigger
 cd <location/of/downloaded/file>
 
 # Extract the installer to a local temporary directory
-local PREFIX=/tmp/xilinx
-local VERSION=2022.2
-local INSTALLER="<downloaded/file>"  # This should match the download
-local INSTALLER_EXTRACTED="${PREFIX}/extracted"
+PREFIX=/tmp/xilinx
+VERSION=2022.2
+INSTALLER="<downloaded/file>"  # This should match the download
+INSTALLER_EXTRACTED="${PREFIX}/extracted"
 mkdir $PREFIX
 chown -R $USER:$USER $PREFIX $INSTALLER
 chmod +x $INSTALLER
 ./$INSTALLER --keep --noexec --target $INSTALLER_EXTRACTED
 
 # Now run the installer to create a bundler installer with the devices we need.
-local INSTALLER_BUNDLED="$PREFIX/bundled"
+INSTALLER_BUNDLED="$PREFIX/bundled"
 pushd $INSTALLER_EXTRACTED
 ./xsetup
 popd
@@ -138,7 +138,7 @@ popd
 # The easiest way to get the data into the nix store is by creating an archive...
 # (You may need to install 'pigz' for this step, e.g. 'sudo apt install pigz')
 pushd $PREFIX
-local BUNDLED_ARCHIVE="$PREFIX/vivado_bundled.tar.gz"
+BUNDLED_ARCHIVE="$PREFIX/vivado_bundled.tar.gz"
 tar cf $BUNDLED_ARCHIVE -I pigz --directory=$(dirname $INSTALLER_BUNDLED) ./$(basename $INSTALLER_BUNDLED)
 
 # Now add using 'nix-prefetch-url'
