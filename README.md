@@ -69,6 +69,7 @@ sh <(curl -L https://nixos.org/nix/install) --daemon
 mkdir -p $HOME/.config/nix
 cat <<EOF > $HOME/.config/nix/nix.conf
 experimental-features = nix-command flakes
+warn-dirty = false
 EOF
 
 # You may now need to reload your shell, but check that nix is working by running this:
