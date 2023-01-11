@@ -166,6 +166,7 @@ nix flake update
 nix develop # This will take a while, maybe 10 mins...
 
 # Once it completes,you should see the message...
+# >> ------------------------------------------------- <<
 # >> Welcome the the ibex-demo-system nix environment! <<
 # >> ------------------------------------------------- <<
 

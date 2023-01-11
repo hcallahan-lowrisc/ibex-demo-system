@@ -146,6 +146,7 @@
             echo "---------------------------------------------------"
             echo "Welcome the the 'ibex-demo-system' nix environment!"
             echo "---------------------------------------------------"
+            echo
 
             helpstr=$(cat <<'EOF'
 
@@ -175,6 +176,7 @@
             EOF
             )
             helpme(){ echo "$helpstr"; }
+
             helpme
 
             echo
