@@ -65,7 +65,8 @@
             - Gzip the bundled installed image directory
             - Rename the file to ${name}
             - Add it to the nix store with
-              $ nix-prefetch-url --type sha256 file:</path/to/${name}>
+              $ HASH=$(nix-prefetch-url --type sha256 file:</path/to/${name}>)
+            - Change the sha256 key above to $HASH
           '';
         };
 
@@ -137,16 +138,23 @@
               's|interpreter:.*|interpreter: ${pythonEnv}/bin/python3|g' \
               vendor/lowrisc_ibex/vendor/lowrisc_ip/ip/prim/primgen.core
 
-            echo "Welcome the the ibex-demo-system nix environment!"
-            echo "-------------------------------------------------"
+            export PS1='labenv(HiPEAC) (ibex-demo-system) \$ '
 
-            cat << EOF
+            echo
+            echo
+            cat ./data/lowrisc.art
+            echo "---------------------------------------------------"
+            echo "Welcome the the 'ibex-demo-system' nix environment!"
+            echo "---------------------------------------------------"
+
+            helpstr=$(cat <<'EOF'
+
             Build ibex software :
                 mkdir sw/build && pushd sw/build && cmake ../ && make && popd
             Build ibex simulation verilator model :
                 fusesoc --cores-root=. run --target=sim --tool=verilator --setup --build lowrisc:ibex:demo_system
             Run ibex simulator verilator model :
-                ./build/lowrisc_ibex_demo_system_0/sim-verilator/Vibex_demo_system [-t] \\
+                ./build/lowrisc_ibex_demo_system_0/sim-verilator/Vibex_demo_system [-t] \
                   --meminit=ram,sw/build/demo/hello_world/demo
             Build ibex-demo-system FPGA bitstream for Arty-A7 :
                 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:ibex:demo_system
@@ -156,7 +164,22 @@
                 make -C ./build/lowrisc_ibex_demo_system_0/synth-vivado/ pgm
             Load ibex software to the programmed FPGA :
                 ./util/load_demo_system.sh run ./sw/build/demo/lcd_st7735/lcd_st7735
+            Start an OpenOCD instance, connected to the Arty-A7 ibex
+                openocd -f util/arty-a7-openocd-cfg.tcl
+            Connect gdb to a running program on the FPGA (In a different terminal to the OpenOCD instance):
+                riscv32-unknown-elf-gdb -ex "target extended-remote localhost:3333" ./sw/build/demo/hello_world/demo
+
+            To leave the environment:
+                exit
+
             EOF
+            )
+            helpme(){ echo "$helpstr"; }
+            helpme
+
+            echo
+            echo "Run 'helpme' in your shell to see this message again."
+            echo
           '';
         };
       })

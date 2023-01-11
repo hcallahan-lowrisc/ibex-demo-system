@@ -29,6 +29,26 @@ probe is required.
 * srecord
 
 
+#### Add udev rules for our device
+These are needed for the programmer to access the development board.
+```bash
+sudo tee <<EOF > /etc/udev/rules.d/90-arty-a7.rules
+# Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
+# used on Digilent boards
+ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", ATTRS{manufacturer}=="Digilent", MODE="0666"
+
+# Future Technology Devices International, Ltd FT232 Serial (UART) IC
+ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
+EOF
+```
+Run the following to reload the rules...
+
+```bash
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+
 ## Nix Environment Setup
 
 An alternative system for installing all of the project dependencies is
@@ -56,25 +76,6 @@ nix --version
 > nix (Nix) 2.12.0
 ```
 
-#### Add udev rules for our device
-These are needed for the programmer to access the development board.
-```bash
-sudo tee <<EOF > /etc/udev/rules.d/90-arty-a7.rules
-# Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
-# used on Digilent boards
-ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", ATTRS{manufacturer}=="Digilent", MODE="0666"
-
-# Future Technology Devices International, Ltd FT232 Serial (UART) IC
-ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
-EOF
-```
-Run the following to reload the rules...
-
-```bash
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
 #### Installing Vivado using Nix
 ```bash
 # Go to the Xilinx.com website
@@ -99,14 +100,14 @@ chown -R $USER:$USER $PREFIX $INSTALLER
 chmod +x $INSTALLER
 ./$INSTALLER --keep --noexec --target $INSTALLER_EXTRACTED
 
-# Now run the installer to create a bundler installer with the devices we need.
+# Now run this installer graphically, to create a new bundled-installer with the device support we need for the Arty-A7.
 INSTALLER_BUNDLED="$PREFIX/bundled"
 pushd $INSTALLER_EXTRACTED
 ./xsetup
 popd
 ```
 
-- Run the installer graphically
+- Running './xsetup' above should have popped up the graphical installation wizard.
   1. Page '<LANDING_PAGE>'
      1. Select 'Next >'
   2. Page 'Select Install Type'
