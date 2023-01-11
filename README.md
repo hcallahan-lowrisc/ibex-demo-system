@@ -54,7 +54,7 @@ sudo udevadm trigger
 An alternative system for installing all of the project dependencies is
 provided using the Nix package manager. Once installed and the dependencies
 are fetched from the internet, you can enter a shell with all of the software
-required for building by running the command `nix develop .#labenv` in the root
+required for building by running the command `nix develop` in the root
 directory of the project. To leave this environment, simply run `exit`.
 
 ### Installing
@@ -163,7 +163,7 @@ cd ibex-demo-system
 sed -i -- "s|sha256\s=\s\".*\";|sha256 = \"$VIVADO_BUNDLED_HASH\";|g" flake.nix
 
 nix flake update
-nix develop .#labenv # This will take a while, maybe 10 mins...
+nix develop # This will take a while, maybe 10 mins...
 
 # Once it completes,you should see the message...
 # >> Welcome the the ibex-demo-system nix environment! <<

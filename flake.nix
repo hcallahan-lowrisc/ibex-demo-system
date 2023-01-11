@@ -2,7 +2,7 @@
   description = "Environment for synthesizing and simulating the ibex-demo-system.";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-22.11";
     flake-utils.url = "github:numtide/flake-utils";
     deps = {
       url = "path:./dependencies";
@@ -65,7 +65,7 @@
             - Gzip the bundled installed image directory
             - Rename the file to ${name}
             - Add it to the nix store with
-              $ HASH=$(nix-prefetch-url --type sha256 file:</path/to/${name}>)
+                nix-prefetch-url --type sha256 file:/path/to/${name}
             - Change the sha256 key above to $HASH
           '';
         };
@@ -118,7 +118,7 @@
             Cmd = [ "${pkgs.sl}/bin/sl" ];
           };
         };
-        devShells.labenv = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           name = "labenv";
           buildInputs = project_deps;
           shellHook = ''
