@@ -77,6 +77,9 @@ nix --version
 > nix (Nix) 2.12.0
 ```
 
+<details>
+  <summary>Installing Vivado using Nix (*optional*)</summary>
+
 #### Installing Vivado using Nix
 ```bash
 # Go to the Xilinx.com website
@@ -151,17 +154,13 @@ echo $VIVADO_BUNDLED_HASH
 popd
 ```
 
+</details>
+
 #### Install and activate our environment
-Finally, we can use the nix flake.nix recipe to build our environment. This will
-use the vivado installer we added to the /nix/store above to install vivado within
-our sandboxed environment, and then add it's PATH to our own once installed.
+We can use the nix flake.nix recipe to build our environment.
 ```bash
 git clone git@github.com:lowRISC/ibex-demo-system.git
 cd ibex-demo-system
-
-# Update the flake.nix with the hash ($VIVADO_BUNDLED_HASH) of the vivado installer
-# (We need to update just the sha256 hash input of requireFile function.)
-sed -i -- "s|sha256\s=\s\".*\";|sha256 = \"$VIVADO_BUNDLED_HASH\";|g" flake.nix
 
 nix flake update
 nix develop # This will take a while, maybe 10 mins...
@@ -176,6 +175,20 @@ nix develop # This will take a while, maybe 10 mins...
 # To exit this shell environment when you are done, simply run
 exit
 ```
+
+<details>
+  <summary>Optional Vivado step</summary>
+
+```bash
+# Run this before the `nix flake update` above.
+
+# Update the flake.nix with the hash ($VIVADO_BUNDLED_HASH) of the vivado installer
+# (We need to update just the sha256 hash input of requireFile function.)
+sed -i -- "s|sha256\s=\s\".*\";|sha256 = \"$VIVADO_BUNDLED_HASH\";|g" dependencies/flake.nix
+```
+
+</details>
+
 
 ## Building Software
 
