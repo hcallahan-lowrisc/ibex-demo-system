@@ -235,7 +235,7 @@ We can use the nix flake.nix recipe to build our environment.
 git clone git@github.com:lowRISC/ibex-demo-system.git
 cd ibex-demo-system
 
-nix flake update
+pushd dependencies && nix flake update && popd && nix flake update
 nix develop # This will take a while, maybe 10 mins...
 
 # Once it completes,you should see the message...
