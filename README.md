@@ -145,6 +145,18 @@ experimental-features = nix-command flakes
 warn-dirty = false
 EOF
 
+# Add your user to the global trusted-users list
+# This allows us to easily import from a cache on a local USB
+sudo MYUSER=$USER su
+mkdir -p /etc/nix
+cat <<EOF >> /etc/nix/nix.conf
+require-sigs = false
+EOF
+exit
+
+# Reload the nix daemon to commit the config above
+sudo systemctl restart nix-daemon.service
+
 # You may now need to reload your shell, but check that nix is working by running this:
 nix --version
 > nix (Nix) 2.12.0
@@ -235,10 +247,19 @@ We can use the nix flake.nix recipe to build our environment.
 git clone git@github.com:lowRISC/ibex-demo-system.git
 cd ibex-demo-system
 
-pushd dependencies && nix flake update && popd && nix flake update
-nix develop # This will take a while, maybe 10 mins...
+# [OPTIONAL]
+# Copy dependencies from a USB stick to compensate for bad internet
+# The hash below is the expected hash of the lab dependencies
+usb_path="<path/to/usb>" # e.g. "/media/harry/KINGSTON"
+nix copy \
+  --no-require-sigs \
+  --from file://${usb_path}/nix/store/ \
+  /nix/store/kx1qnhs2b6ikn5s4mj7jpj84rasqwc2h-labenv
 
-# Once it completes,you should see the message...
+pushd dependencies && nix flake update && popd && nix flake update
+nix develop
+
+# Once it completes,you should see the lowRISC logo, followed by...
 # >> ------------------------------------------------- <<
 # >> Welcome the the ibex-demo-system nix environment! <<
 # >> ------------------------------------------------- <<
