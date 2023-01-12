@@ -99,7 +99,7 @@
             echo
             cat ./data/lowrisc.art
             echo "---------------------------------------------------"
-            echo "Welcome the the 'ibex-demo-system' nix environment!"
+            echo "Welcome to the 'ibex-demo-system' nix environment!"
             echo "---------------------------------------------------"
             echo
 
