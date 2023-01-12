@@ -34,7 +34,9 @@ These are needed for the programmer to access the development board.
 
 Arty-A7
 ```bash
-sudo tee <<EOF > /etc/udev/rules.d/90-arty-a7.rules
+
+sudo su
+cat <<EOF > /etc/udev/rules.d/90-arty-a7.rules
 # Future Technology Devices International, Ltd FT2232C/D/H Dual UART/FIFO IC
 # used on Digilent boards
 ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", ATTRS{manufacturer}=="Digilent", MODE="0666"
@@ -43,11 +45,13 @@ ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idPro
 ACTION=="add|change", SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", MODE="0666"
 EOF
 
+exit
 ```
 
 openFPGAloader
 ```bash
-sudo tee <<EOF > /etc/udev/rules.d/99-openfpgaloader.rules
+sudo su
+cat <<EOF > /etc/udev/rules.d/99-openfpgaloader.rules
 # Copy this file to /etc/udev/rules.d/
 
 ACTION!="add|change", GOTO="openfpgaloader_rules_end"
@@ -107,6 +111,8 @@ LABEL="openfpgaloader_rules_end"
 
 EOF
 
+exit
+
 ```
 
 Run the following to reload the rules...
@@ -147,11 +153,12 @@ EOF
 
 # Add your user to the global trusted-users list
 # This allows us to easily import from a cache on a local USB
-sudo MYUSER=$USER su
+sudo su
 mkdir -p /etc/nix
 cat <<EOF >> /etc/nix/nix.conf
 require-sigs = false
 EOF
+
 exit
 
 # Reload the nix daemon to commit the config above
@@ -248,7 +255,7 @@ git clone git@github.com:lowRISC/ibex-demo-system.git
 cd ibex-demo-system
 
 # [OPTIONAL]
-# Copy dependencies from a USB stick to compensate for bad internet
+# Copy dependencies from a pre-prepared USB stick to compensate for bad internet
 # The hash below is the expected hash of the lab dependencies
 usb_path="<path/to/usb>" # e.g. "/media/harry/KINGSTON"
 nix copy \
