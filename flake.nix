@@ -115,7 +115,7 @@
             Build ibex-demo-system FPGA bitstream for Arty-A7 :
                 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:ibex:demo_system
             Program Arty-A7 FPGA with bitstream :
-                openFPGALoader -b arty_a7_35t <path-to>/lowirsc_ibex_demo_system.bit
+                openFPGALoader -b arty_a7_35t build/lowrisc_ibex_demo_system_0/synth-vivado/lowrisc_ibex_demo_system_0.bit
             Load ibex software to the programmed FPGA :
                 ./util/load_demo_system.sh run ./sw/build/demo/lcd_st7735/lcd_st7735
             Start an OpenOCD instance, connected to the Arty-A7 ibex
