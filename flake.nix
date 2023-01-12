@@ -57,6 +57,7 @@
           riscv-gcc-toolchain-lowrisc
           gtkwave
           srecord
+          openfpgaloader
           # vivado
         ]);
 
@@ -114,9 +115,7 @@
             Build ibex-demo-system FPGA bitstream for Arty-A7 :
                 fusesoc --cores-root=. run --target=synth --setup --build lowrisc:ibex:demo_system
             Program Arty-A7 FPGA with bitstream :
-                fusesoc --cores-root=. run --target=synth --run lowrisc:ibex:demo_system
-              OR
-                make -C ./build/lowrisc_ibex_demo_system_0/synth-vivado/ pgm
+                openFPGALoader -b arty_a7_35t <path-to>/lowirsc_ibex_demo_system.bit
             Load ibex software to the programmed FPGA :
                 ./util/load_demo_system.sh run ./sw/build/demo/lcd_st7735/lcd_st7735
             Start an OpenOCD instance, connected to the Arty-A7 ibex
