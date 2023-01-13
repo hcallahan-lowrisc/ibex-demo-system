@@ -151,14 +151,13 @@ experimental-features = nix-command flakes
 warn-dirty = false
 EOF
 
-# Add your user to the global trusted-users list
+# Disable signatures when using nix copy to import from a store
 # This allows us to easily import from a cache on a local USB
 sudo su
 mkdir -p /etc/nix
 cat <<EOF >> /etc/nix/nix.conf
 require-sigs = false
 EOF
-
 exit
 
 # Reload the nix daemon to commit the config above
@@ -233,9 +232,9 @@ popd
 # Now we have created a bundled installer for Vivado, we need to add this to the nix store
 
 # The easiest way to get the data into the nix store is by creating an archive...
-# (You may need to install 'pigz' for this step, e.g. 'sudo apt install pigz')
 pushd $PREFIX
 BUNDLED_ARCHIVE="$PREFIX/vivado_bundled.tar.gz"
+# (You may need to install 'pigz' for this step, e.g. 'sudo apt install pigz')
 tar cf $BUNDLED_ARCHIVE -I pigz --directory=$(dirname $INSTALLER_BUNDLED) ./$(basename $INSTALLER_BUNDLED)
 
 # Now add using 'nix-prefetch-url'
@@ -275,6 +274,10 @@ nix develop
 
 # To exit this shell environment when you are done, simply run
 exit
+
+# Bonus Nix
+# Use nix-tree to interactively examine all dependencies of the demo.
+nix run nixpkgs#nix-tree -- .#devShells.x86_64-linux.default --derivation
 ```
 
 <details>
@@ -289,6 +292,26 @@ sed -i -- "s|sha256\s=\s\".*\";|sha256 = \"$VIVADO_BUNDLED_HASH\";|g" dependenci
 ```
 
 </details>
+
+## Native Python Environment
+
+If running natively, you may wish to install python requirements inside a virtual
+environment to avoid disturbing you current python setup (note it uses a lowRISC
+fork of edalize and FuseSoC so if you already use these a virtual environment is
+recommended)
+
+```bash
+# Setup python venv
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install python requirements
+pip3 install -r python-requirements.txt
+```
+
+You may need to run the last command twice if you get the following error:
+`ERROR: Failed building wheel for fusesoc`
+
 
 
 ## Building Software
